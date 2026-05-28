@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: xama-trading
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate
+    startCommand: gunicorn xama_system.wsgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: xama-trading-db
+          property: connectionString
+
+databases:
+  - name: xama-trading-db
+    databaseName: xama_trading
+    user: xama_trading_user
+    plan: free

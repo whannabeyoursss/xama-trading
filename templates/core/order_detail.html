@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Order #{{ order.id }}</h2>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Customer:</strong> {{ order.customer.get_full_name|default:order.customer.username }}</p>
+                    <p><strong>Product:</strong> {{ order.product.name }}</p>
+                    <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                    <p><strong>Price per Unit:</strong> ₱{{ order.product.price }}</p>
+                    <p><strong>Total:</strong> <strong>₱{{ order.total }}</strong></p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'approved' %}info{% elif order.status == 'completed' %}success{% else %}danger{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </p>
+                    <p><strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+            </div>
+
+            {% if status_history %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Status Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for history in status_history %}
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <p class="mb-1"><strong>{{ history.old_status|default:"Initial" }} → {{ history.new_status }}</strong></p>
+                                <small class="text-muted">{{ history.changed_at|date:"M d, Y H:i" }} by {{ history.changed_by.username }}</small>
+                                {% if history.notes %}
+                                <p class="mb-0"><em>{{ history.notes }}</em></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if review_form %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Leave a Review</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            {{ review_form.rating }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comment</label>
+                            {{ review_form.comment }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.can_cancel %}
+                    <a href="{% url 'cancel_order' order.id %}" class="btn btn-danger btn-sm w-100 mb-2" onclick="return confirm('Are you sure?')">
+                        Cancel Order
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'orders' %}" class="btn btn-secondary btn-sm w-100">
+                        Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        top: 0;
+    }
+    
+    .timeline-content {
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}

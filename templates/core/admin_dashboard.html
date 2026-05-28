@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block sidebar_extra %}
+<section class="note-panel">
+    <h2>Notes</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="note">
+        {{ note_form.as_p }}
+        <button type="submit">Save note</button>
+    </form>
+    <div class="note-list">
+        {% for note in notes %}
+            <article>
+                <strong>{{ note.title }}</strong>
+                <p>{{ note.body|truncatechars:90 }}</p>
+            </article>
+        {% empty %}
+            <p class="muted">No notes yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <span class="dashboard-greeting">Welcome back, {{ user.get_full_name|default:user.username }}</span>
+        <h1>Admin Dashboard</h1>
+        <p>Xama Consumer Goods Trading inventory and order overview.</p>
+    </div>
+    <a class="button" href="{% url 'product_create' %}">Add Product</a>
+</header>
+
+<section class="stats-grid">
+    <article><span>{{ product_count }}</span><small>Products</small></article>
+    <article><span>{{ low_stock_count }}</span><small>Low stock</small></article>
+    <article><span>{{ order_count }}</span><small>Total orders</small></article>
+    <article><span>{{ sales_total }}</span><small>Units ordered</small></article>
+</section>
+
+<section class="split-grid">
+    <div>
+        <h2>Recent Orders</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Customer</th><th>Address</th><th>Product</th><th>Qty</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                            <td>{{ order.customer.address|default:"No address" }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td><span class="badge">{{ order.get_status_display }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5">No orders yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <h2>Low Stock</h2>
+        <div class="stock-list">
+            {% for product in low_stock_products %}
+                <article>
+                    <strong>{{ product.name }}</strong>
+                    <span>{{ product.quantity }} left</span>
+                </article>
+            {% empty %}
+                <p class="muted">All products are above reorder level.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

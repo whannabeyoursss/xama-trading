@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="auth-card">
+    <div class="auth-brand">
+        <h1>XAMA</h1>
+        <p>CONSUMER GOODS TRADING</p>
+        <h2>Sign in to your account</h2>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+        </p>
+        <p>
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            {{ form.password.errors }}
+        </p>
+        {{ form.non_field_errors }}
+        <button type="submit">Sign In</button>
+    </form>
+    <div class="auth-links centered">
+        <a href="{% url 'forgot_password' %}">Forgot password?</a>
+    </div>
+    <div class="auth-divider"><span>don't have an account?</span></div>
+    <a class="button outline full-width" href="{% url 'signup' %}">Create New Account &rarr;</a>
+</section>
+{% endblock %}

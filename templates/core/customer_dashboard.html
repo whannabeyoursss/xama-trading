@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <span class="dashboard-greeting">Hello, {{ user.get_full_name|default:user.username }}</span>
+        <h1>Browse our available products and place orders anytime.</h1>
+    </div>
+    <a class="button" href="{% url 'order_create' %}">Place Order</a>
+</header>
+
+<section class="stats-grid customer">
+    <article><span>{{ order_count }}</span><small>Your orders</small></article>
+    <article><span>{{ pending_count }}</span><small>Pending</small></article>
+</section>
+
+<section>
+    <h2>Available Products</h2>
+    <div class="product-grid">
+        {% for product in products %}
+            <article class="product-card">
+                {% if product.image %}
+                    <img src="{% static product.image %}" alt="{{ product.name }}" class="product-image">
+                {% endif %}
+                <small>{{ product.sku }}</small>
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description|default:"Consumer goods item."|truncatechars:80 }}</p>
+                <div><strong>PHP {{ product.price }}</strong><span>{{ product.quantity }} in stock</span></div>
+            </article>
+        {% empty %}
+            <p class="muted">No products available right now.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section>
+    <h2>Recent Orders</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Product</th><th>Qty</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for order in recent_orders %}
+                    <tr>
+                        <td>{{ order.product.name }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>PHP {{ order.total }}</td>
+                        <td><span class="badge">{{ order.get_status_display }}</span></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

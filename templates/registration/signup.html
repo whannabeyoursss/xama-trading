@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="auth-card wide">
+    <div class="auth-brand">
+        <h1>XAMA</h1>
+        <p>CONSUMER GOODS TRADING</p>
+        <h2>Create your account</h2>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            <p><label for="{{ form.username.id_for_label }}">Username</label>{{ form.username }}{{ form.username.errors }}</p>
+            <p><label for="{{ form.phone_number.id_for_label }}">Phone number</label>{{ form.phone_number }}{{ form.phone_number.errors }}</p>
+            <p><label for="{{ form.first_name.id_for_label }}">First name</label>{{ form.first_name }}{{ form.first_name.errors }}</p>
+            <p><label for="{{ form.last_name.id_for_label }}">Last name</label>{{ form.last_name }}{{ form.last_name.errors }}</p>
+        </div>
+        <p><label for="{{ form.address.id_for_label }}">Address</label>{{ form.address }}{{ form.address.errors }}</p>
+        <div class="form-grid">
+            <p><label for="{{ form.password1.id_for_label }}">Password</label>{{ form.password1 }}{{ form.password1.errors }}</p>
+            <p><label for="{{ form.password2.id_for_label }}">Confirm password</label>{{ form.password2 }}{{ form.password2.errors }}</p>
+        </div>
+        {{ form.non_field_errors }}
+        <button type="submit">Create Account</button>
+    </form>
+    <div class="auth-divider"><span>already have an account?</span></div>
+    <a class="button outline full-width" href="{% url 'login' %}">Back to Sign In &rarr;</a>
+</section>
+{% endblock %}

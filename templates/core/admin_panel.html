@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Admin Control Panel</h1>
+        <p>Manage products, orders, users, and system settings</p>
+    </div>
+</header>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span class="stat-number">{{ product_count }}</span>
+        <small>Total Products</small>
+        <a href="{% url 'products' %}" class="stat-link">View all →</a>
+    </article>
+    <article class="stat-card warning">
+        <span class="stat-number">{{ low_stock_count }}</span>
+        <small>Low Stock Items</small>
+        <a href="#low-stock" class="stat-link">Details →</a>
+    </article>
+    <article class="stat-card">
+        <span class="stat-number">{{ order_count }}</span>
+        <small>Total Orders</small>
+        <a href="{% url 'orders' %}" class="stat-link">View all →</a>
+    </article>
+    <article class="stat-card alert">
+        <span class="stat-number">{{ pending_orders_count }}</span>
+        <small>Pending Orders</small>
+        <a href="{% url 'orders' %}" class="stat-link">Review →</a>
+    </article>
+    <article class="stat-card">
+        <span class="stat-number">{{ user_count }}</span>
+        <small>Total Users</small>
+    </article>
+    <article class="stat-card">
+        <span class="stat-number">{{ sales_total }}</span>
+        <small>Units Ordered</small>
+    </article>
+</section>
+
+<section class="admin-grid">
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>User Management</h2>
+            <span class="badge-info">{{ admin_count }} admins, {{ customer_count }} customers</span>
+        </div>
+        <div class="info-box">
+            <p>Total Users: <strong>{{ user_count }}</strong></p>
+            <ul class="user-summary">
+                <li>Administrators: {{ admin_count }}</li>
+                <li>Customers: {{ customer_count }}</li>
+            </ul>
+            <p class="note">Use Django admin panel for user management: <a href="{% url 'admin:index' %}" target="_blank">Go to Admin</a></p>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>Product Management</h2>
+            <a href="{% url 'product_create' %}" class="button-small">+ Add Product</a>
+        </div>
+        <div class="info-box">
+            <p>Total Products: <strong>{{ product_count }}</strong></p>
+            <a href="{% url 'products' %}" class="button">Manage Products</a>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>Order Management</h2>
+            <a href="{% url 'orders' %}" class="button-small">View All</a>
+        </div>
+        <div class="info-box">
+            <p>Total Orders: <strong>{{ order_count }}</strong></p>
+            <p>Pending: <strong>{{ pending_orders_count }}</strong></p>
+            <a href="{% url 'orders' %}" class="button">Manage Orders</a>
+        </div>
+    </div>
+</section>
+
+<section class="split-grid">
+    <div>
+        <h2>Sales Trend (Last 30 Days)</h2>
+        <canvas id="salesChart" width="400" height="200"></canvas>
+    </div>
+
+    <div>
+        <h2>Top Products</h2>
+        <canvas id="topProductsChart" width="400" height="200"></canvas>
+    </div>
+</section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                            <td>{{ order.product.name }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>
+                                <span class="badge status-{{ order.status }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-center">No orders yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'orders' %}" class="button">View All Orders</a>
+    </div>
+
+    <div id="low-stock">
+        <h2>Low Stock Alerts</h2>
+        <div class="stock-list">
+            {% for product in low_stock_products %}
+                <article class="stock-alert">
+                    <div class="stock-info">
+                        <strong>{{ product.name }}</strong>
+                        <small>SKU: {{ product.sku }}</small>
+                    </div>
+                    <div class="stock-status">
+                        <span class="quantity-warning">{{ product.quantity }}</span>
+                        <small>units (Reorder: {{ product.reorder_level }})</small>
+                    </div>
+                </article>
+            {% empty %}
+                <p class="muted">All products are above reorder level.</p>
+            {% endfor %}
+        </div>
+        <a href="{% url 'products' %}" class="button">Manage Inventory</a>
+    </div>
+</section>
+
+<section class="admin-section full">
+    <h2>Quick Actions</h2>
+    <div class="quick-actions">
+        <a href="{% url 'product_create' %}" class="action-card">
+            <span class="icon">+</span>
+            <strong>Add Product</strong>
+            <small>Create new product</small>
+        </a>
+        <a href="{% url 'products' %}" class="action-card">
+            <span class="icon">📦</span>
+            <strong>Manage Products</strong>
+            <small>Edit or delete products</small>
+        </a>
+        <a href="{% url 'orders' %}" class="action-card">
+            <span class="icon">📋</span>
+            <strong>Manage Orders</strong>
+            <small>Process orders</small>
+        </a>
+        <a href="{% url 'user_list' %}" class="action-card">
+            <span class="icon">👥</span>
+            <strong>Manage Users</strong>
+            <small>User management</small>
+        </a>
+        <a href="{% url 'audit_logs' %}" class="action-card">
+            <span class="icon">📊</span>
+            <strong>Audit Logs</strong>
+            <small>View system logs</small>
+        </a>
+        <a href="{% url 'admin:index' %}" class="action-card">
+            <span class="icon">⚙️</span>
+            <strong>Django Admin</strong>
+            <small>Advanced management</small>
+        </a>
+    </div>
+</section>
+
+<section id="recent-orders">
+    <h2>Recent Orders</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in page_obj %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                        <td>{{ order.product.name }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>
+                            <span class="badge status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ order.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center">No orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'orders' %}" class="button">View All Orders</a>
+</section>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-4" aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">First</a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<style>
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.admin-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.admin-section.full {
+    grid-column: 1 / -1;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.button-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.info-box {
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.user-summary {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0.5rem 0;
+}
+
+.user-summary li {
+    padding: 0.25rem 0;
+    color: #666;
+}
+
+.note {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 1rem;
+}
+
+.note a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.note a:hover {
+    text-decoration: underline;
+}
+
+.stat-card {
+    position: relative;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.alert {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.stat-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.stat-link:hover {
+    color: white;
+}
+
+.stock-alert {
+    background: #fff8f0;
+    border-left: 4px solid #ff6b6b;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stock-info strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.stock-status {
+    text-align: right;
+}
+
+.quantity-warning {
+    font-weight: bold;
+    color: #ff6b6b;
+    font-size: 1.25rem;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.action-card .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.action-card strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.action-card small {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.badge-info {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-completed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.text-center {
+    text-align: center;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Sales trend chart
+    const dailyOrders = {{ daily_orders|safe }};
+    const dates = Object.keys(dailyOrders).sort();
+    const values = dates.map(d => dailyOrders[d]);
+    
+    const salesCtx = document.getElementById('salesChart');
+    if (salesCtx && dates.length > 0) {
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Orders (Last 30 Days)',
+                    data: values,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+    
+    // Top products chart
+    const topProducts = {{ top_products|safe }};
+    if (topProducts && topProducts.length > 0) {
+        const productLabels = topProducts.map(p => p[0]);
+        const productValues = topProducts.map(p => p[1]);
+        
+        const productsCtx = document.getElementById('topProductsChart');
+        new Chart(productsCtx, {
+            type: 'bar',
+            data: {
+                labels: productLabels,
+                datasets: [{
+                    label: 'Units Ordered',
+                    data: productValues,
+                    backgroundColor: '#764ba2',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
